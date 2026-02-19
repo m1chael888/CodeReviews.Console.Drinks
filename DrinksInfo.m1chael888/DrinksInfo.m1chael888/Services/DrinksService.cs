@@ -2,50 +2,49 @@
 using RestSharp;
 using DrinksInfo.m1chael888.Models;
 
-namespace DrinksInfo.m1chael888.Services
+namespace DrinksInfo.m1chael888.Services;
+
+public interface IDrinksService
 {
-    public interface IDrinksService
+    List<Category> GetCategories();
+    List<Drink> GetDrinks(string category);
+}
+public class DrinksService : IDrinksService
+{
+    private readonly string _drinkClient = "https://www.thecocktaildb.com/api/json/v1/1/";
+    public List<Category> GetCategories()
     {
-        List<Category> GetCategories();
-        List<Drink> GetDrinks(string category);
+        var client = new RestClient(_drinkClient);
+        var request = new RestRequest("list.php?c=list");
+        var response = client.ExecuteAsync(request);
+
+        if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
+        {
+            var responseString = response.Result.Content;
+            var serialize = JsonConvert.DeserializeObject<Categories>(responseString);
+
+            List<Category> categories = serialize.CategoriesList;
+
+            return categories;
+        }
+        return new List<Category> { };
     }
-    public class DrinksService : IDrinksService
+
+    public List<Drink> GetDrinks(string category)
     {
-        private readonly string _drinkClient = "https://www.thecocktaildb.com/api/json/v1/1/";
-        public List<Category> GetCategories()
+        var client = new RestClient(_drinkClient);
+        var request = new RestRequest($"filter.php?c={category}");
+        var response = client.ExecuteAsync(request);
+
+        if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
         {
-            var client = new RestClient(_drinkClient);
-            var request = new RestRequest("list.php?c=list");
-            var response = client.ExecuteAsync(request);
+            var responseString = response.Result.Content;
+            var serialize = JsonConvert.DeserializeObject<Drinks>(responseString);
 
-            if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                var responseString = response.Result.Content;
-                var serialize = JsonConvert.DeserializeObject<Categories>(responseString);
+            List<Drink> drinks = serialize.DrinkList;
 
-                List<Category> categories = serialize.CategoriesList;
-
-                return categories;
-            }
-            return new List<Category> { };
+            return drinks;
         }
-
-        public List<Drink> GetDrinks(string category)
-        {
-            var client = new RestClient(_drinkClient);
-            var request = new RestRequest($"filter.php?c={category}");
-            var response = client.ExecuteAsync(request);
-
-            if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
-            {
-                var responseString = response.Result.Content;
-                var serialize = JsonConvert.DeserializeObject<Drinks>(responseString);
-
-                List<Drink> drinks = serialize.DrinkList;
-
-                return drinks;
-            }
-            return new List<Drink> { };
-        }
+        return new List<Drink> { };
     }
 }

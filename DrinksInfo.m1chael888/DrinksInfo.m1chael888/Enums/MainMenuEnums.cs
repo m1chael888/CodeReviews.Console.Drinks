@@ -1,15 +1,14 @@
 ﻿using System.ComponentModel;
 
-namespace DrinksInfo.m1chael888.Enums
+namespace DrinksInfo.m1chael888.Enums;
+
+public static class MainMenuEnums
 {
-    public static class MainMenuEnums
+    public enum MainMenuOption
     {
-        public enum MainMenuOption
-        {
-            [Description("View Categories")]
-            ViewCategories,
-            [Description("Exit App")]
-            Exit
-        }
+        [Description("View Categories")]
+        ViewCategories,
+        [Description("Exit App")]
+        Exit
     }
 }

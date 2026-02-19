@@ -1,14 +1,13 @@
 ﻿using Newtonsoft.Json;
 
-namespace DrinksInfo.m1chael888.Models
+namespace DrinksInfo.m1chael888.Models;
+
+public class Category
 {
-    public class Category
-    {
-        public string strCategory {  get; set; }
-    }
-    public class Categories
-    {
-        [JsonProperty("drinks")]
-        public List<Category> CategoriesList {  get; set; }
-    }
+    public string strCategory {  get; set; } = string.Empty;
+}
+public class Categories
+{
+    [JsonProperty("drinks")]
+    public List<Category> CategoriesList {  get; set; }
 }

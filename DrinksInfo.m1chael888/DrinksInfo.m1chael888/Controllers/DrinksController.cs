@@ -2,44 +2,51 @@
 using DrinksInfo.m1chael888.Services;
 using DrinksInfo.m1chael888.Models;
 using static DrinksInfo.m1chael888.Enums.MainMenuEnums;
+using Spectre.Console;
 
-namespace DrinksInfo.m1chael888.Controllers
+namespace DrinksInfo.m1chael888.Controllers;
+
+public class DrinksController
 {
-    public class DrinksController
+    private readonly IDrinksView _drinksView;
+    private readonly IDrinksService _drinksService;
+    public DrinksController(IDrinksView tableView, IDrinksService drinksService)
     {
-        private IDrinksView _drinksView;
-        private IDrinksService _drinksService;
-        public DrinksController(IDrinksView tableView, IDrinksService drinksService)
+        _drinksView = tableView;
+        _drinksService = drinksService;
+    }
+
+    public void HandleMainMenu()
+    {
+        var choice = _drinksView.ShowMainMenu();
+
+        switch (choice)
         {
-            _drinksView = tableView;
-            _drinksService = drinksService;
+            case MainMenuOption.ViewCategories:
+                try
+                {
+                    HandleCategoryChoice();
+                }
+                catch (Exception ex)
+                {
+                    _drinksView.ShowAccessError(ex.Message);
+                }
+                break;
+            case MainMenuOption.Exit:
+                Environment.Exit(0);
+                break;
         }
+    }
 
-        public void HandleMainMenu()
+    private void HandleCategoryChoice()
+    {
+        var categories = _drinksService.GetCategories();
+        if (categories.Count == 0)
         {
-            var choice = _drinksView.ShowMainMenu();
-
-            switch (choice)
-            {
-                case MainMenuOption.ViewCategories:
-                    try
-                    {
-                        HandleCategoryChoice();
-                    }
-                    catch (Exception ex)
-                    {
-                        _drinksView.ShowAccessError(ex.Message);
-                    }
-                    break;
-                case MainMenuOption.Exit:
-                    Environment.Exit(0);
-                    break;
-            }
+            ReturnStatus("Drinks menu currently unnavailable");
         }
-
-        private void HandleCategoryChoice()
+        else
         {
-            var categories = _drinksService.GetCategories();
             var categoryChoice = _drinksView.ShowCategoryPrompt(categories);
             try
             {
@@ -50,12 +57,32 @@ namespace DrinksInfo.m1chael888.Controllers
                 _drinksView.ShowAccessError(ex.Message);
             }
         }
+    }
 
-        private void HandleDrinkChoice(Category categoryChoice)
+    private void HandleDrinkChoice(Category categoryChoice)
+    {
+        var drinks = _drinksService.GetDrinks(categoryChoice.strCategory);
+        if (drinks.Count == 0)
         {
-            var drinks = _drinksService.GetDrinks(categoryChoice.strCategory);
+            ReturnStatus("Drinks menu currently unnavailable");
+        }
+        else
+        {
             var drinkChoice = _drinksView.ShowDrinkPrompt(drinks);
             _drinksView.ShowDrinkInfo(drinkChoice);
         }
+        
+    }
+
+    private void ReturnStatus(string msg)
+    {
+        AnsiConsole.MarkupLine($"[cyan]{msg}[/]");
+        AnsiConsole.Status()
+            .Spinner(Spinner.Known.Point)
+            .SpinnerStyle("white")
+            .Start($"[grey74]Press any key to return[/]", x =>
+            {
+                Console.ReadKey();
+            });
     }
 }
